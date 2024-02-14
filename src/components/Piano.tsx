@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
+import Sound from "react-native-sound";
 import Svg, { Rect, Text } from 'react-native-svg';
+
+Sound.setCategory('Playback');
 
 type KeyName = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 
@@ -28,6 +31,58 @@ const WhiteKeyDefs: KeyDef[] = [
   { name: "G", sharpShift: "center" },
 ];
 
+type IntervalDef = { up: string[], down: string[] };
+const TuningIntervals: Record<string, IntervalDef> = {
+  "A": {
+    up: ["C", "C#", "D", "E"],
+    down: ["F", "F#"]
+  },
+  "A#": {
+    up: ["C#", "D", "D#", "F"],
+    down: ["F", "F#", "G"]
+  },
+  "B": {
+    up: ["D", "D#", "E"],
+    down: ["F#", "G", "G#"]
+  },
+  "C": {
+    up: ["D#", "E", "F"],
+    down: ["A", "F", "G", "G#"]
+  },
+  "C#": {
+    up: ["E", "F"],
+    down: ["A", "A#", "G#"]
+  },
+  "D": {
+    up: ["F"],
+    down: ["A", "A#", "B", "F", "G"]
+  },
+  "D#": {
+    up: [],
+    down: ["A#", "F#", "G#"]
+  },
+  "E": {
+    up: [],
+    down: ["A", "B", "C", "C#", "G"]
+  },
+  "F": {
+    up: ["C", "D", "G#"],
+    down: ["A#", "C", "C#", "D", "G#"]
+  },
+  "F#": {
+    up: ["A", "A#", "B", "C#", "D#"],
+    down: []
+  },
+  "G": {
+    up: ["A#", "B", "C", "D", "E"],
+    down: []
+  },
+  "G#": {
+    up: ["B", "C", "C#", "D#", "F"],
+    down: []
+  }
+}
+
 const getPositionFactor = (sharpShift?: BlackKeyShiftType) => {
   switch (sharpShift) {
     case "left":
@@ -41,20 +96,31 @@ const getPositionFactor = (sharpShift?: BlackKeyShiftType) => {
   }
 }
 
-const Key = ({
-  keyLabel,
-  keyIndex,
-  pianoViewHeight,
-  sharpShift
-}: {
+type KeyProps = {
   keyLabel: string;
   keyIndex: number;
   pianoViewHeight: number;
   sharpShift?: BlackKeyShiftType;
-}) => {
+  onClick?: () => void;
+  isFirstSelection?: boolean
+}
+
+const Key = ({
+  keyLabel,
+  keyIndex,
+  pianoViewHeight,
+  sharpShift,
+  onClick,
+  isFirstSelection
+}: KeyProps) => {
   const x = (keyIndex + getPositionFactor(sharpShift)) * WHITE_KEY_RELATIVE_WIDTH;
   const width = !sharpShift ? WHITE_KEY_RELATIVE_WIDTH : BLACK_KEY_RELATIVE_WIDTH
   const height = pianoViewHeight * (!sharpShift ? 1 : BLACK_KEY_HEIGHT_FACTOR);
+
+  let fill = !sharpShift ? "white" : "black";
+  if (isFirstSelection) fill = "red";
+  else if (!onClick) fill = !sharpShift ? "lightgray" : "darkgray"
+
   console.log("RENDER Key", keyLabel, x, width, height, sharpShift)
   return (
     <>
@@ -63,9 +129,10 @@ const Key = ({
         y={0}
         width={width}
         height={height}
-        fill={!sharpShift ? "white" : "black"}
+        fill={fill}
         stroke="black"
         strokeWidth="0.5"
+        onPress={onClick}
       />
       <Text
         x={x + (width / 2)}
@@ -78,6 +145,11 @@ const Key = ({
       </Text>
     </>
   )
+}
+
+type KeySelection = {
+  index: number;
+  key: string;
 }
 
 const Piano = ({
@@ -96,20 +168,60 @@ const Piano = ({
   const pianoViewWidth = whiteKeyCount * WHITE_KEY_RELATIVE_WIDTH;
   const pianoViewHeight = pianoViewWidth / pianoAspectRatio;
 
+  // TODO lock these to temperament octave
   const startingKeyIndex = WhiteKeyDefs.findIndex(k => k.name === startingKeyName)
   const [startingOctave, setStartingOctave] = useState(0);
 
-  const getKeyProps = (type: "white" | "black") => (keyIndex: number) => {
+  const [firstKeySelection, setFirstKeySelection] = useState<KeySelection>();
+
+  const getKeyProps = (type: "white" | "black") => (keyIndex: number): KeyProps | undefined => {
     const whiteKeyIndex = (keyIndex + startingKeyIndex) % WhiteKeyDefs.length;
     const { name, sharpShift } = WhiteKeyDefs[whiteKeyIndex];
     if (type === "black" && !sharpShift) return;
+
+    const key = `${name}${type === "black" ? "#" : ""}`
     const octave = startingOctave + Math.floor(keyIndex / WhiteKeyDefs.length);
+    const isFirstSelection = firstKeySelection?.key === key;
+
+    let onClick: (() => void) | undefined = undefined;
+    if (!firstKeySelection) {
+      onClick = () => setFirstKeySelection({ index: keyIndex, key })
+    } else if (isFirstSelection) {
+      onClick = () => setFirstKeySelection(undefined);
+    } else {
+      const intervals = TuningIntervals[firstKeySelection.key]
+      let intervalKeys: string | undefined = undefined;
+      if (intervals.up.includes(key)) intervalKeys = `${firstKeySelection.key}_${key}`
+      else if (intervals.down.includes(key)) intervalKeys = `${key}_${firstKeySelection.key}`
+      if (!!intervalKeys) {
+        const soundFile = `partial_${intervalKeys.toLowerCase().replaceAll("#", "s")}.mp3`
+        onClick = ()  => {
+          console.log(`loading sound ${soundFile}`)
+          // TODO display what's happening
+          // TODO on second click play tempo clicks (or configure in main panel)
+          const sound = new Sound(soundFile, Sound.MAIN_BUNDLE, error => {
+            if (error) {
+              console.log('failed to load the sound', error);
+              return;
+            }
+            sound.play(success => {
+              if (success) {
+                console.log('successfully finished playing');
+              } else {
+                console.log('playback failed due to audio decoding errors');
+              }
+            })
+          })
+        }
+      }
+    }
     return {
-      keyLabel: `${name}${type === "black" ? "#" : ""}${octave}`,
+      keyLabel: `${key}${octave}`,
       keyIndex,
       pianoViewHeight,
       sharpShift: type === "black" ? sharpShift : undefined,
-      key: `${type}-${keyIndex}`
+      isFirstSelection,
+      onClick,
     }
   }
   const keyIndices = Array(whiteKeyCount).fill(null).map((_, i) => i);
@@ -125,8 +237,8 @@ const Piano = ({
           height="100%"
           viewBox={`0 0 ${pianoViewWidth} ${pianoViewHeight}`}
         >
-          {whiteKeyProps.map(p => p && <Key {...p} />)}
-          {blackKeyProps.map(p => p && <Key {...p} />)}
+          {whiteKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
+          {blackKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
         </Svg>
       </View>
     </View>
