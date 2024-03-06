@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import Sound from "react-native-sound";
 import Svg, { Rect, Text } from 'react-native-svg';
+import Control from './Control';
 
 Sound.setCategory('Playback');
 
@@ -121,7 +122,6 @@ const Key = ({
   if (isFirstSelection) fill = "red";
   else if (!onClick) fill = !sharpShift ? "lightgray" : "darkgray"
 
-  console.log("RENDER Key", keyLabel, x, width, height, sharpShift)
   return (
     <>
       <Rect
@@ -153,24 +153,23 @@ type KeySelection = {
 }
 
 const Piano = ({
-  whiteKeyCount = 15,
-  headerHeightPx = 100,
-  startingKeyName = "C"
+  heightPx,
+  whiteKeyCount,
+  startingKeyName,
+  startingOctave
 }: {
-  whiteKeyCount?: number;
-  headerHeightPx?: number;
-  startingKeyName?: KeyName;
+  heightPx: number;
+  whiteKeyCount: number;
+  startingKeyName: KeyName;
+  startingOctave: number;
 }) => {
   const window = useWindowDimensions();
-  const pianoHeightPx = window.height - headerHeightPx;
-  const pianoAspectRatio = window.width / pianoHeightPx;
+  const pianoAspectRatio = window.width / heightPx;
 
   const pianoViewWidth = whiteKeyCount * WHITE_KEY_RELATIVE_WIDTH;
   const pianoViewHeight = pianoViewWidth / pianoAspectRatio;
 
-  // TODO lock these to temperament octave
-  const startingKeyIndex = WhiteKeyDefs.findIndex(k => k.name === startingKeyName)
-  const [startingOctave, setStartingOctave] = useState(0);
+  const startingKeyIndex = WhiteKeyDefs.findIndex(k => k.name === startingKeyName);
 
   const [firstKeySelection, setFirstKeySelection] = useState<KeySelection>();
 
@@ -226,22 +225,17 @@ const Piano = ({
   }
   const keyIndices = Array(whiteKeyCount).fill(null).map((_, i) => i);
   const whiteKeyProps = keyIndices.map(getKeyProps("white"));
-  const blackKeyProps = keyIndices.map(getKeyProps("black"));
+  const blackKeyProps = keyIndices.slice(0, whiteKeyCount - 1).map(getKeyProps("black"));
 
   return (
-    <View style={{ height: "100%", width: "100%", flexDirection: "column" }} >
-      <View style={{ height: headerHeightPx, width: "100%", backgroundColor: "lightblue" }} />
-      <View style={{ height: pianoHeightPx, width: "100%", position: "relative" }}>
-        <Svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${pianoViewWidth} ${pianoViewHeight}`}
-        >
-          {whiteKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
-          {blackKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
-        </Svg>
-      </View>
-    </View>
+    <Svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${pianoViewWidth} ${pianoViewHeight}`}
+    >
+      {whiteKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
+      {blackKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
+    </Svg>
   );
 };
 
