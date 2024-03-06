@@ -33,41 +33,9 @@ const WhiteKeyDefs: KeyDef[] = [
 
 type IntervalDef = { up: string[], down: string[] };
 const TuningIntervals: Record<string, IntervalDef> = {
-  "A": {
-    up: ["C", "C#", "D", "E"],
-    down: ["F", "F#"]
-  },
-  "A#": {
-    up: ["C#", "D", "D#", "F"],
-    down: ["F", "F#", "G"]
-  },
-  "B": {
-    up: ["D", "D#", "E"],
-    down: ["F#", "G", "G#"]
-  },
-  "C": {
-    up: ["D#", "E", "F"],
-    down: ["A", "F", "G", "G#"]
-  },
-  "C#": {
-    up: ["E", "F"],
-    down: ["A", "A#", "G#"]
-  },
-  "D": {
-    up: ["F"],
-    down: ["A", "A#", "B", "F", "G"]
-  },
-  "D#": {
-    up: [],
-    down: ["A#", "F#", "G#"]
-  },
-  "E": {
-    up: [],
-    down: ["A", "B", "C", "C#", "G"]
-  },
   "F": {
-    up: ["C", "D", "G#"],
-    down: ["A#", "C", "C#", "D", "G#"]
+    up: ["G#", "A", "A#", "C", "C#", "D"], // Low F Only: A, C, D
+    down: []
   },
   "F#": {
     up: ["A", "A#", "B", "C#", "D#"],
@@ -78,8 +46,40 @@ const TuningIntervals: Record<string, IntervalDef> = {
     down: []
   },
   "G#": {
-    up: ["B", "C", "C#", "D#", "F"],
-    down: []
+    up: ["B", "C", "C#", "D#"],
+    down: ["F"]
+  },
+  "A": {
+    up: ["C", "C#", "D", "E"],
+    down: ["F", "F#"]
+  },
+  "A#": {
+    up: ["C#", "D", "D#"],
+    down: ["F", "F#", "G"]
+  },
+  "B": {
+    up: ["D", "D#", "E"],
+    down: ["F#", "G", "G#"]
+  },
+  "C": {
+    up: ["D#", "E"],
+    down: ["F", "G", "G#", "A"]
+  },
+  "C#": {
+    up: ["E"],
+    down: ["F", "F#", "G#", "A", "A#"]
+  },
+  "D": {
+    up: [],
+    down: ["F", "G", "A", "A#", "B"]
+  },
+  "D#": {
+    up: [],
+    down: ["F#", "G#", "A#", "B", "C"]
+  },
+  "E": {
+    up: [],
+    down: ["G", "A", "B", "C", "C#"]
   }
 }
 
