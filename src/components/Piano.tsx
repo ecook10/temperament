@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import React, { useState } from "react";
+import { useWindowDimensions } from "react-native";
 import Sound from "react-native-sound";
-import Svg, { Rect, Text } from 'react-native-svg';
-import Control from './Control';
+import Svg, { Rect, Text } from "react-native-svg";
 
-Sound.setCategory('Playback');
+Sound.setCategory("Playback");
 
 type KeyName = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 
-type BlackKeyShiftType = "right" | "left" | "center"
+type BlackKeyShiftType = "right" | "left" | "center";
 
 type KeyDef = {
   name: KeyName;
   sharpShift?: BlackKeyShiftType;
-}
+};
 
 const WHITE_KEY_RELATIVE_WIDTH = 10;
 
@@ -32,70 +31,70 @@ const WhiteKeyDefs: KeyDef[] = [
   { name: "G", sharpShift: "center" },
 ];
 
-type IntervalDef = { up: string[], down: string[] };
+type IntervalDef = { up: string[]; down: string[] };
 const TuningIntervals: Record<string, IntervalDef> = {
-  "F": {
+  F: {
     up: ["G#", "A", "A#", "C", "C#", "D"], // Low F Only: A, C, D
-    down: []
+    down: [],
   },
   "F#": {
     up: ["A", "A#", "B", "C#", "D#"],
-    down: []
+    down: [],
   },
-  "G": {
+  G: {
     up: ["A#", "B", "C", "D", "E"],
-    down: []
+    down: [],
   },
   "G#": {
     up: ["B", "C", "C#", "D#"],
-    down: ["F"]
+    down: ["F"],
   },
-  "A": {
+  A: {
     up: ["C", "C#", "D", "E"],
-    down: ["F", "F#"]
+    down: ["F", "F#"],
   },
   "A#": {
     up: ["C#", "D", "D#"],
-    down: ["F", "F#", "G"]
+    down: ["F", "F#", "G"],
   },
-  "B": {
+  B: {
     up: ["D", "D#", "E"],
-    down: ["F#", "G", "G#"]
+    down: ["F#", "G", "G#"],
   },
-  "C": {
+  C: {
     up: ["D#", "E"],
-    down: ["F", "G", "G#", "A"]
+    down: ["F", "G", "G#", "A"],
   },
   "C#": {
     up: ["E"],
-    down: ["F", "F#", "G#", "A", "A#"]
+    down: ["F", "F#", "G#", "A", "A#"],
   },
-  "D": {
+  D: {
     up: [],
-    down: ["F", "G", "A", "A#", "B"]
+    down: ["F", "G", "A", "A#", "B"],
   },
   "D#": {
     up: [],
-    down: ["F#", "G#", "A#", "B", "C"]
+    down: ["F#", "G#", "A#", "B", "C"],
   },
-  "E": {
+  E: {
     up: [],
-    down: ["G", "A", "B", "C", "C#"]
-  }
-}
+    down: ["G", "A", "B", "C", "C#"],
+  },
+};
 
 const getPositionFactor = (sharpShift?: BlackKeyShiftType) => {
   switch (sharpShift) {
     case "left":
-      return 0.75 - BLACK_KEY_SHIFT_FACTOR
+      return 0.75 - BLACK_KEY_SHIFT_FACTOR;
     case "right":
-      return 0.75 + BLACK_KEY_SHIFT_FACTOR
+      return 0.75 + BLACK_KEY_SHIFT_FACTOR;
     case "center":
-      return 0.75
+      return 0.75;
     default:
       return 0;
   }
-}
+};
 
 type KeyProps = {
   keyLabel: string;
@@ -103,8 +102,8 @@ type KeyProps = {
   pianoViewHeight: number;
   sharpShift?: BlackKeyShiftType;
   onClick?: () => void;
-  isFirstSelection?: boolean
-}
+  isFirstSelection?: boolean;
+};
 
 const Key = ({
   keyLabel,
@@ -112,15 +111,18 @@ const Key = ({
   pianoViewHeight,
   sharpShift,
   onClick,
-  isFirstSelection
+  isFirstSelection,
 }: KeyProps) => {
-  const x = (keyIndex + getPositionFactor(sharpShift)) * WHITE_KEY_RELATIVE_WIDTH;
-  const width = !sharpShift ? WHITE_KEY_RELATIVE_WIDTH : BLACK_KEY_RELATIVE_WIDTH
+  const x =
+    (keyIndex + getPositionFactor(sharpShift)) * WHITE_KEY_RELATIVE_WIDTH;
+  const width = !sharpShift
+    ? WHITE_KEY_RELATIVE_WIDTH
+    : BLACK_KEY_RELATIVE_WIDTH;
   const height = pianoViewHeight * (!sharpShift ? 1 : BLACK_KEY_HEIGHT_FACTOR);
 
   let fill = !sharpShift ? "white" : "black";
   if (isFirstSelection) fill = "red";
-  else if (!onClick) fill = !sharpShift ? "lightgray" : "darkgray"
+  else if (!onClick) fill = !sharpShift ? "lightgray" : "darkgray";
 
   return (
     <>
@@ -135,8 +137,8 @@ const Key = ({
         onPress={onClick}
       />
       <Text
-        x={x + (width / 2)}
-        y={height - (pianoViewHeight * (!sharpShift ? 0.12 : 0.03))}
+        x={x + width / 2}
+        y={height - pianoViewHeight * (!sharpShift ? 0.12 : 0.03)}
         fill={!sharpShift ? "black" : "white"}
         fontSize="2"
         textAnchor="middle"
@@ -144,19 +146,19 @@ const Key = ({
         {keyLabel}
       </Text>
     </>
-  )
-}
+  );
+};
 
 type KeySelection = {
   index: number;
   key: string;
-}
+};
 
 const Piano = ({
   heightPx,
   whiteKeyCount,
   startingKeyName,
-  startingOctave
+  startingOctave,
 }: {
   heightPx: number;
   whiteKeyCount: number;
@@ -169,63 +171,76 @@ const Piano = ({
   const pianoViewWidth = whiteKeyCount * WHITE_KEY_RELATIVE_WIDTH;
   const pianoViewHeight = pianoViewWidth / pianoAspectRatio;
 
-  const startingKeyIndex = WhiteKeyDefs.findIndex(k => k.name === startingKeyName);
+  const startingKeyIndex = WhiteKeyDefs.findIndex(
+    (k) => k.name === startingKeyName
+  );
 
   const [firstKeySelection, setFirstKeySelection] = useState<KeySelection>();
 
-  const getKeyProps = (type: "white" | "black") => (keyIndex: number): KeyProps | undefined => {
-    const whiteKeyIndex = (keyIndex + startingKeyIndex) % WhiteKeyDefs.length;
-    const { name, sharpShift } = WhiteKeyDefs[whiteKeyIndex];
-    if (type === "black" && !sharpShift) return;
+  const getKeyProps =
+    (type: "white" | "black") =>
+    (keyIndex: number): KeyProps | undefined => {
+      const whiteKeyIndex = (keyIndex + startingKeyIndex) % WhiteKeyDefs.length;
+      const { name, sharpShift } = WhiteKeyDefs[whiteKeyIndex];
+      if (type === "black" && !sharpShift) return;
 
-    const key = `${name}${type === "black" ? "#" : ""}`
-    const octave = startingOctave + Math.floor(keyIndex / WhiteKeyDefs.length);
-    const isFirstSelection = firstKeySelection?.key === key;
+      const key = `${name}${type === "black" ? "#" : ""}`;
+      const octave =
+        startingOctave + Math.floor(keyIndex / WhiteKeyDefs.length);
+      const isFirstSelection = firstKeySelection?.key === key;
 
-    let onClick: (() => void) | undefined = undefined;
-    if (!firstKeySelection) {
-      onClick = () => setFirstKeySelection({ index: keyIndex, key })
-    } else if (isFirstSelection) {
-      onClick = () => setFirstKeySelection(undefined);
-    } else {
-      const intervals = TuningIntervals[firstKeySelection.key]
-      let intervalKeys: string | undefined = undefined;
-      if (intervals.up.includes(key)) intervalKeys = `${firstKeySelection.key}_${key}`
-      else if (intervals.down.includes(key)) intervalKeys = `${key}_${firstKeySelection.key}`
-      if (!!intervalKeys) {
-        const soundFile = `partial_${intervalKeys.toLowerCase().replaceAll("#", "s")}.mp3`
-        onClick = ()  => {
-          console.log(`loading sound ${soundFile}`)
-          // TODO display what's happening
-          // TODO on second click play tempo clicks (or configure in main panel)
-          const sound = new Sound(soundFile, Sound.MAIN_BUNDLE, error => {
-            if (error) {
-              console.log('failed to load the sound', error);
-              return;
-            }
-            sound.play(success => {
-              if (success) {
-                console.log('successfully finished playing');
-              } else {
-                console.log('playback failed due to audio decoding errors');
+      let onClick: (() => void) | undefined = undefined;
+      if (!firstKeySelection) {
+        onClick = () => setFirstKeySelection({ index: keyIndex, key });
+      } else if (isFirstSelection) {
+        onClick = () => setFirstKeySelection(undefined);
+      } else {
+        const intervals = TuningIntervals[firstKeySelection.key];
+        let intervalKeys: string | undefined = undefined;
+        if (intervals.up.includes(key))
+          intervalKeys = `${firstKeySelection.key}_${key}`;
+        else if (intervals.down.includes(key))
+          intervalKeys = `${key}_${firstKeySelection.key}`;
+        if (!!intervalKeys) {
+          const soundFile = `partial_${intervalKeys
+            .toLowerCase()
+            .replaceAll("#", "s")}.mp3`;
+          onClick = () => {
+            console.log(`loading sound ${soundFile}`);
+            // TODO display what's happening
+            // TODO on second click play tempo clicks (or configure in main panel)
+            const sound = new Sound(soundFile, Sound.MAIN_BUNDLE, (error) => {
+              if (error) {
+                console.log("failed to load the sound", error);
+                return;
               }
-            })
-          })
+              sound.play((success) => {
+                if (success) {
+                  console.log("successfully finished playing");
+                } else {
+                  console.log("playback failed due to audio decoding errors");
+                }
+              });
+            });
+          };
         }
       }
-    }
-    return {
-      keyLabel: `${key}${octave}`,
-      keyIndex,
-      pianoViewHeight,
-      sharpShift: type === "black" ? sharpShift : undefined,
-      isFirstSelection,
-      onClick,
-    }
-  }
-  const keyIndices = Array(whiteKeyCount).fill(null).map((_, i) => i);
+      return {
+        keyLabel: `${key}${octave}`,
+        keyIndex,
+        pianoViewHeight,
+        sharpShift: type === "black" ? sharpShift : undefined,
+        isFirstSelection,
+        onClick,
+      };
+    };
+  const keyIndices = Array(whiteKeyCount)
+    .fill(null)
+    .map((_, i) => i);
   const whiteKeyProps = keyIndices.map(getKeyProps("white"));
-  const blackKeyProps = keyIndices.slice(0, whiteKeyCount - 1).map(getKeyProps("black"));
+  const blackKeyProps = keyIndices
+    .slice(0, whiteKeyCount - 1)
+    .map(getKeyProps("black"));
 
   return (
     <Svg
@@ -233,8 +248,8 @@ const Piano = ({
       height="100%"
       viewBox={`0 0 ${pianoViewWidth} ${pianoViewHeight}`}
     >
-      {whiteKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
-      {blackKeyProps.map(p => p && <Key {...p} key={p.keyLabel} />)}
+      {whiteKeyProps.map((p) => p && <Key {...p} key={p.keyLabel} />)}
+      {blackKeyProps.map((p) => p && <Key {...p} key={p.keyLabel} />)}
     </Svg>
   );
 };

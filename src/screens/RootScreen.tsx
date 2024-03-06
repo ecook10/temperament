@@ -12,11 +12,20 @@ const RootScreen = () => {
   const [mode, setMode] = useState<ControlMode>();
 
   return (
-    <View style={{ height: "100%", width: "100%", flexDirection: "column" }} >
-      <View style={{ height: CONTROL_HEIGHT_PX, width: "100%", backgroundColor: "lightblue", flexDirection: "row" }}>
+    <View style={{ height: "100%", width: "100%", flexDirection: "column" }}>
+      <View
+        style={{
+          height: CONTROL_HEIGHT_PX,
+          width: "100%",
+          backgroundColor: "lightblue",
+          flexDirection: "row",
+        }}
+      >
         <Control mode={mode} setMode={setMode} />
       </View>
-      <View style={{ height: pianoHeightPx, width: "100%", position: "relative" }}>
+      <View
+        style={{ height: pianoHeightPx, width: "100%", position: "relative" }}
+      >
         <Piano
           heightPx={pianoHeightPx}
           whiteKeyCount={8}
