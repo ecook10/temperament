@@ -175,6 +175,7 @@ const Piano = ({
     (k) => k.name === startingKeyName
   );
 
+  // TODO move selection state into ControlStore + stop playing audio
   const [firstKeySelection, setFirstKeySelection] = useState<KeySelection>();
 
   const getKeyProps =

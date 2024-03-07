@@ -1,15 +1,12 @@
 import { View, useWindowDimensions } from "react-native";
-import Control, { ControlMode } from "../components/Control";
+import Control from "../components/Control";
 import Piano from "../components/Piano";
-import { useState } from "react";
 
 const CONTROL_HEIGHT_PX = 100;
 
 const RootScreen = () => {
   const window = useWindowDimensions();
   const pianoHeightPx = window.height - CONTROL_HEIGHT_PX;
-
-  const [mode, setMode] = useState<ControlMode>();
 
   return (
     <View style={{ height: "100%", width: "100%", flexDirection: "column" }}>
@@ -21,7 +18,7 @@ const RootScreen = () => {
           flexDirection: "row",
         }}
       >
-        <Control mode={mode} setMode={setMode} />
+        <Control />
       </View>
       <View
         style={{ height: pianoHeightPx, width: "100%", position: "relative" }}
